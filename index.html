@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css"
+        integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous" />
+    <link rel="stylesheet" href="./css/styles.css">
+    <link rel="stylesheet" href="./css/directions.css">
+</head>
+
+<body>
+    <nav id="v-nav" class="hide">
+        <div id="nav-toggle" class="nav-icon"><i class="fas fa-bars"></i></div>
+        <ul class="navigator" id="nav-menu"></ul>
+        <div id="overwrite-loc" class="sec-nav">
+            <div id="close-edit">
+                <span><i class="fas fa-window-close"></i></span>
+            </div>
+            <div>
+                <label id="lat-info" class="lat"></label>
+                <label id="lng-info" class="lng"></label>
+                <hr>
+                <input type="text" name="loc-icon" id="loc-icon" placeholder="Enter the icon Link">
+                <input type="text" name="loc-content" id="loc-content" placeholder="Enter the Note">
+                <button onclick="editLocData()">Done</button>
+            </div>
+        </div>
+    </nav>
+    <div id="floating-panel" class="hide-right">
+        <div id="nav-toggle-right" class="nav-icon nav-icon-right"><i class="fas fa-bars"></i></div>
+        <div class="loc-item">
+            <span>Start: </span>
+            <select id="start"></select>
+        </div>
+        <div class="loc-item">
+
+            <span>End: </span>
+            <select id="end"></select>
+        </div>
+
+        <div class="loc-item">
+
+            <span>Mode of Travel: </span>
+            <select id="mode">
+                <option value="DRIVING">Driving</option>
+                <option value="WALKING">Walking</option>
+                <option value="BICYCLING">Bicycling</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="map" class="map"></div>
+        <!-- For displaying user's coordinate or error message. -->
+        <div id="info" class="info"></div>
+    </div>
+
+
+    <!-- ---------------- Scripts -------------- -->
+    <script src="./js/directions.js"></script>
+    <!-- AIzaSyDq6Nda4Goyucih9iyDVmrGcdFDYoJroMY -->
+    <!-- AIzaSyB3lKh_KwWQ2ho_VYSc4IdZsQO6YE5cpBw -->
+    <script async defer src="https://maps.googleapis.com/maps/api/js?libraries=places&key=AIzaSyAaqxl4Rve6wjojceW0oC6mXRoDjObVNE0"></script>
+    <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js"></script>
+    <script src="./js/locations.js"></script>
+    <script src="./js/scripts.js"></script>
+</body>
+
+</html>
