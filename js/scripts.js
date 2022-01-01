@@ -11,6 +11,7 @@ document.getElementById("close-edit").addEventListener("click", () => {
 
 
 // Map Handling
+let goToBase = 1;
 let markerClustererLayer = undefined;
 let map;
 const infoWindow = createInfoWindow();
@@ -206,7 +207,7 @@ function initMap() {
     // Use the new trackLocation function.
     trackLocation({
         onSuccess: ({ coords: { latitude: lat, longitude: lng } }) => {
-            map.panTo({ lat, lng })
+            goToBase && map.panTo({ lat, lng }) && goToBase-- ; 
 
             info.textContent = `Lat: ${lat} Lng: ${lng}`;
             info.classList.remove('error');
