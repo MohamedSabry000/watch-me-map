@@ -1,0 +1,67 @@
+
+:root {
+    --bottom-height-ration: 0;
+}
+
+#floating-panel-insert{
+    transition: all 0.5s ease-out;
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+}
+
+.insert-container {
+    position: relative;
+    background: #FFF;
+    padding: 10px;
+    width: 100%;
+    text-align: center;
+    border-top: 1px solid #000;
+}
+
+.insert-loc-item> span {
+    display: inline-block;
+    text-align: right;
+    padding-right: 19px;
+}
+
+.insert-loc-item{
+    margin-bottom: 10px;
+}
+
+.insert-loc-item > input{
+    display: inline-block;
+    width: 35%;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #CCC;
+}
+
+.insert-loc-item > button{
+    width: 41%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #CCC;
+    margin: 0 auto;
+    box-shadow: 0 1px 5px 5px;
+    display: inline-block;
+    cursor: pointer;
+    font-weight: bold;
+    background: #4fab6e;
+}
+
+.hide-bottom > div {
+    position: relative;
+}
+
+.nav-icon-bottom-right{
+    left: auto;
+    right: 0;
+    top: auto;
+    bottom: 100%;
+    z-index: 21;
+}
+
+#floating-panel-insert.hide-bottom{
+    bottom: var(--bottom-height-ration);
+}

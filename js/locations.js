@@ -1,18 +1,13 @@
 const getDataFromLocalStorage = () => JSON.parse(localStorage.getItem('locs')) || [];
-let markers = getDataFromLocalStorage();
-
-const forceSetSession = (locs) => {
-  localStorage.setItem('locs', JSON.stringify(locs));
-}
 
 const SaveDataToLocalStorage = (data) => {
-    a = getDataFromLocalStorage();
+    let all = getDataFromLocalStorage();
     // Push the new data (whether it be an object or anything else) onto the array
-    a.push({coords: data, iconImage: '', content: ''});
+    all.push({coords: data, iconImage: '', content: ''});
     // Re-serialize the array back into a string and store it in localStorage
-    localStorage.setItem('locs', JSON.stringify(a));
+    localStorage.setItem('locs', JSON.stringify(all));
 
-    markers = a;
+    return all;
 }
 
 // Get proper error message based on the code.

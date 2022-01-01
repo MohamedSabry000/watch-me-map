@@ -9,22 +9,43 @@ document.getElementById("close-edit").addEventListener("click", () => {
 
 
 // Map Handling
+let markerClustererLayer = undefined;
 let map;
-let goToBase = 1;
-const createMap = ({ lat, lng }) =>
-    new google.maps.Map(document.getElementById('map'), {
+const infoWindow = createInfoWindow();
+
+// let gmarkers;
+
+function createMap({ lat, lng }){ 
+    return new google.maps.Map(document.getElementById('map'), {
         center: { lat, lng },
         zoom: 13
     });
+}
 
-const createMarkerClusterer = (map, markers) =>
-    new MarkerClusterer(map, markers, {
-        imagePath:
-            'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
-    });
+function createInfoWindow () {
+    return  new google.maps.InfoWindow({
+                content: "",
+                disableAutoPan: true,
+            });
+}
+
+const createMarkerClusterer = (map, markers) =>{
+    if(markerClustererLayer == undefined){
+        markerClustererLayer = 
+            new MarkerClusterer(map, markers, {
+                imagePath:
+                    'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
+            });
+    } else {
+        markerClustererLayer.clearMarkers();
+        markerClustererLayer.addMarkers(markers);
+    }
+    return markerClustererLayer;
+}
+    
 
 //Add MArker function
-const addMarker = (props, infoWindow) => {
+const addMarker = (props) => {
     const svgMarker = {
         path: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z',
         fillColor: "#BA68C8",
@@ -42,19 +63,25 @@ const addMarker = (props, infoWindow) => {
     });
 
     marker.addListener("click", () => {
-        console.log(props);
+        console.log(marker);
         infoWindow.setContent(props.content);
         infoWindow.open(map, marker);
     });
 
+    function isValidImageURL(str){
+        if ( typeof str !== 'string' ) return false;
+        return !!str.match(/\w+\.(jpg|jpeg|gif|png|tiff|bmp)$/gi);
+    }
+
     if (props.iconImage) {
-        // MarkerImage( // url: , // size: , // origin: , // anchor: , // set scaledSize: )
-        var newImage = new google.maps.MarkerImage(props.iconImage, new google.maps.Size(32, 37), new google.maps.Point(0, 0), new google.maps.Point(8, 16), new google.maps.Size(32, 37)); 
-        marker.setIcon(null);
-        marker.setIcon(newImage); 
-        // if (!marker.setIcon(newImage)) {
-        //     marker.setIcon(svgMarker)
-        // }
+        if (!isValidImageURL(props.iconImage)) {
+            marker.setIcon(svgMarker)
+        } else {
+            // MarkerImage( // url: , // size: , // origin: , // anchor: , // set scaledSize: )
+            var newImage = new google.maps.MarkerImage(props.iconImage, new google.maps.Size(32, 37), new google.maps.Point(0, 0), new google.maps.Point(8, 16), new google.maps.Size(32, 37)); 
+            marker.setIcon(null);
+            marker.setIcon(newImage); 
+        }
     }
     //Check content
     if (props.content) {
@@ -68,25 +95,16 @@ const addMarker = (props, infoWindow) => {
     return marker;
 }
 
-const createInfoWindow = () =>
-    new google.maps.InfoWindow({
-        content: "",
-        disableAutoPan: true,
-    });
 
 const panTo = (e) => {
     map.panTo({ lat: parseFloat(e.getAttribute("data-lat")), lng: parseFloat(e.getAttribute("data-lng")) })
 }
 
-const editData = (e) => {
-    const loc = getDataFromLocalStorage();
-    const thisLoc = loc.findIndex(el => el.coords.lat == e.getAttribute("data-lat") && el.coords.lng == e.getAttribute("data-lng"));
-    document.getElementById("lat-info").innerText = loc[thisLoc].coords.lat;
-    document.getElementById("lng-info").innerText = loc[thisLoc].coords.lng;
-    document.getElementById("loc-icon").value = loc[thisLoc].iconImage;
-    document.getElementById("loc-content").value = loc[thisLoc].content;
-    document.getElementById("overwrite-loc").classList.toggle("hide");
+const forceSetSession = (locs) => {
+    localStorage.setItem('locs', JSON.stringify(locs));
+    pushMarkersOnArray(locs);
 }
+
 
 const editLocData = () => {
     let obj = {};
@@ -100,104 +118,109 @@ const editLocData = () => {
     if (thisLoc != undefined) {
         loc[thisLoc].iconImage = obj.icon;
         loc[thisLoc].content = obj.content;
+
         forceSetSession(loc);
-        // console.log(loc);
     }
 }
+
+const delData = (e) => {
+    const loc = getDataFromLocalStorage();
+    const thisLoc = loc.findIndex(el => el.coords.lat == e.getAttribute("data-lat") && el.coords.lng == e.getAttribute("data-lng"));
+    const bureLocs = loc.filter((e,i) => i != thisLoc);
+    forceSetSession(bureLocs);
+}
+
+const editDataWindow = (e) => {
+    const loc = getDataFromLocalStorage();
+    const thisLoc = loc.findIndex(el => el.coords.lat == e.getAttribute("data-lat") && el.coords.lng == e.getAttribute("data-lng"));
+    document.getElementById("lat-info").innerText = loc[thisLoc].coords.lat;
+    document.getElementById("lng-info").innerText = loc[thisLoc].coords.lng;
+    document.getElementById("loc-icon").value = loc[thisLoc].iconImage;
+    document.getElementById("loc-content").value = loc[thisLoc].content;
+    document.getElementById("overwrite-loc").classList.toggle("hide");
+}
+
+const addDomListElement = (lat, lng, index) => 
+    `<li>
+        <a class="${index == 0 ? 'active' : ''}" href="javascript:void(0);" data-lat="${lat}" data-lng="${lng}" onclick="panTo(this)">
+            ${lat}, ${lng}
+        </a>
+        <a class="loc-edit" href="javascript:void(0);" data-lat="${lat}" data-lng="${lng}" onclick="editDataWindow(this)">
+            <i class="far fa-edit"></i>
+        </a>
+        <a class="loc-del" href="javascript:void(0);" data-lat="${lat}" data-lng="${lng}" onclick="delData(this)">
+            <i class="far fa-trash"></i>
+        </a>
+    </li>`;
+
+const addDomSelectElement = (pos, startList, endList) => {
+    const el = `<option value="${pos.coords.lat},${pos.coords.lng}">
+                    ${pos.content? pos.content : pos.coords.lat+', '+pos.coords.lng}
+                </option>`;
+    startList.innerHTML += el;
+    endList.innerHTML += el;
+}
+    
 
 // Loop through markers
-const puskMarkersOnArray = (markers, infoWindow) => {
+function pushMarkersOnArray(markers) {
     let gmarkers = [];
     // List Parent of the Left Bar
-    const ul = document.getElementById("nav-menu");    
-    ul.innerHTML = '';
+    const domListPosContainer = document.getElementById("nav-menu");    
+    domListPosContainer.innerHTML = '';
 
     // Selection Lists of the Right Bar
-    const start = document.getElementById("start");
-    const end = document.getElementById("end");
-    start.innerHTML = '';
-    end.innerHTML = '';
+    const startPos = document.getElementById("start");
+    const endPos = document.getElementById("end");
+    startPos.innerHTML = '';
+    endPos.innerHTML = '';
 
     for (let i = 0; i < markers.length; i++) {
-        gmarkers.push(addMarker(markers[i], infoWindow));
-        // Add Position to The List on Left
-        ul.innerHTML +=
-            `<li>
-                <a class="${i == 0 ? 'active' : ''}" href="javascript:void(0);" data-lat="${markers[i].coords.lat}" data-lng="${markers[i].coords.lng}" onclick="panTo(this)">
-                    ${markers[i].coords.lat}, ${markers[i].coords.lng}
-                </a>
-                <a class="loc-edit" href="javascript:void(0);" data-lat="${markers[i].coords.lat}" data-lng="${markers[i].coords.lng}" onclick="editData(this)">
-                    <i class="far fa-edit"></i>
-                </a>
-            </li>`;
-        // Add Position to the List Right
-        const el = `
-        <option value="${markers[i].coords.lat},${markers[i].coords.lng}">
-            ${markers[i].content? markers[i].content : markers[i].coords.lat+', '+markers[i].coords.lng}
-        </option>`;
+        gmarkers.push(addMarker(markers[i]));
 
-        start.innerHTML += el;
-        end.innerHTML += el;
+        domListPosContainer.innerHTML += 
+            addDomListElement(markers[i].coords.lat, markers[i].coords.lng, i)
 
+        addDomSelectElement(markers[i], startPos, endPos); 
     }
 
-    return gmarkers;
+    createMarkerClusterer(map, gmarkers);
 }
 
-const markerCluster = (map, markers) => {
-    new MarkerClusterer(map, markers, {
-        imagePath:
-            'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m'
-    });
+function addMarkerMapResponse(lat, lng){
+    map.panTo({ lat, lng });
+    const newMarkers = SaveDataToLocalStorage({ lat, lng });
+    pushMarkersOnArray(newMarkers);
 }
 
 function initMap() {    
+
     const initialPosition = { lat: 30.6937856, lng: 30.8609024 };
-
     map = createMap(initialPosition);
+    let markers = getDataFromLocalStorage();
 
-    fromToLocs(map);    // Get Directions
-
-    let InfoWindow = createInfoWindow();
-    let gmarkers;
+    fromToLocs(map);    // Get Directions serves the right list
 
     // Use the new trackLocation function.
     trackLocation({
         onSuccess: ({ coords: { latitude: lat, longitude: lng } }) => {
-            // marker.setPosition({ lat, lng });
-            if (goToBase) { map.panTo({ lat, lng }); goToBase = 0; }
-            // Print out the user's location.
+            map.panTo({ lat, lng })
+
             info.textContent = `Lat: ${lat} Lng: ${lng}`;
-            // Don't forget to remove any error class name.
             info.classList.remove('error');
+
             const LocsFromStorage = getDataFromLocalStorage();
-            if (LocsFromStorage.length) {
-                if (checkDistance({ lat: lat, lng: lng })) {
-                    SaveDataToLocalStorage({ lat: lat, lng: lng });
-                    map.panTo({ lat, lng });
-                    gmarkers = puskMarkersOnArray(markers, InfoWindow);
-                    createMarkerClusterer(map, gmarkers);
-                    console.log("here");
-                }
-            } else {
-                map.panTo({ lat, lng });
-                SaveDataToLocalStorage({ lat: lat, lng: lng });
-                gmarkers = puskMarkersOnArray(markers, InfoWindow);
-                createMarkerClusterer(map, gmarkers);
-            }
-            // drawLine({lat: 30.3409044, lng: 31.1712409}, {lat: 52.520007, lng: 13.404954})
-            // const distance = haversine_distance({lat: 30.3409044, lng: 31.1712409}, {lat: 52.520007, lng: 13.404954})
-            // console.log(distance);
+            LocsFromStorage.length?
+                checkDistance({ lat, lng }) && addMarkerMapResponse( lat, lng )
+                :
+                addMarkerMapResponse( lat, lng )
         },
         onError: err => {
-            // Print out the error message.
             info.textContent = `Error: ${getPositionErrorMessage(err.code) || err.message}`;
-            // Add error class name.
             info.classList.add('error');
         }
     });
 
-    gmarkers = puskMarkersOnArray(markers, InfoWindow);
-    createMarkerClusterer(map, gmarkers);
+    pushMarkersOnArray(markers);
 }
 initMap();
