@@ -1,3 +1,5 @@
+window.onload = () => initMap();
+
 // Navbar Menu Toggle
 document.getElementById("nav-toggle").addEventListener("click", () => {
     document.getElementById("v-nav").classList.toggle("hide");
@@ -223,4 +225,3 @@ function initMap() {
 
     pushMarkersOnArray(markers);
 }
-initMap();
